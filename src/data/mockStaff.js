@@ -1,0 +1,38 @@
+export const mockStaff = [
+  {
+    id: 1,
+    name: "Carlos Rodríguez",
+    email: "carlos.rodriguez@gymadmin.com",
+    phone: "+34 611 222 333",
+    role: "admin",
+    status: "activo",
+    createdAt: "2024-01-15",
+  },
+  {
+    id: 2,
+    name: "Laura Sánchez",
+    email: "laura.sanchez@gymadmin.com",
+    phone: "+34 622 333 444",
+    role: "entrenador",
+    status: "activo",
+    createdAt: "2024-03-20",
+  },
+  {
+    id: 3,
+    name: "Miguel Torres",
+    email: "miguel.torres@gymadmin.com",
+    phone: "+34 633 444 555",
+    role: "recepcionista",
+    status: "activo",
+    createdAt: "2024-06-10",
+  },
+  {
+    id: 4,
+    name: "Sofia Ramírez",
+    email: "sofia.ramirez@gymadmin.com",
+    phone: "+34 644 555 666",
+    role: "entrenador",
+    status: "inactivo",
+    createdAt: "2023-11-05",
+  },
+]

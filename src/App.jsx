@@ -6,6 +6,8 @@ import Home from "./pages/Home"
 import Clients from "./pages/Clients"
 import ClientNew from "./pages/ClientNew"
 import Profile from "./pages/Profile"
+import Staff from "./pages/Staff"
+import StaffNew from "./pages/StaffNew"
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/clients/new" element={<ClientNew />} />
+                <Route path="/staff" element={<Staff />} />
+                <Route path="/staff/new" element={<StaffNew />} />
                 <Route path="/profile" element={<Profile />} />
               </Routes>
             </main>
