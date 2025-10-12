@@ -74,7 +74,7 @@ const Sidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-gray-800">
-        <div className="text-xs text-gray-500 text-center">© 2025 GymAdmin v1.0</div>
+        <div className="text-xs text-gray-500 text-center">© 2025 MatiasSepulveda v1.0</div>
       </div>
     </aside>
   )
