@@ -1,8 +1,10 @@
+"use client"
+
 import { Link, useLocation } from "react-router-dom"
 import { useApp } from "../../context/AppContext"
 
 const Topbar = () => {
-  const { user } = useApp()
+  const { user, toggleSidebar } = useApp()
   const location = useLocation()
 
   const getPageTitle = () => {
@@ -13,6 +15,10 @@ const Topbar = () => {
         return "Clientes"
       case "/clients/new":
         return "Agregar Cliente"
+      case "/staff":
+        return "Staff"
+      case "/staff/new":
+        return "Agregar Staff"
       case "/profile":
         return "Mi Perfil"
       default:
@@ -23,10 +29,22 @@ const Topbar = () => {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">{getPageTitle()}</h2>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={toggleSidebar}
+            className="lg:hidden text-gray-600 hover:text-gray-900 transition-colors"
+            aria-label="Abrir menú"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          <h2 className="text-2xl font-bold text-gray-800">{getPageTitle()}</h2>
+        </div>
 
         <div className="flex items-center gap-4">
-          <div className="text-right">
+          <div className="text-right hidden sm:block">
             <p className="text-sm font-medium text-gray-900">{user.name}</p>
             <p className="text-xs text-gray-500">{user.role}</p>
           </div>

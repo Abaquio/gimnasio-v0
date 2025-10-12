@@ -19,6 +19,15 @@ export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(mockUser)
   const [clients, setClients] = useState(mockClients)
   const [staff, setStaff] = useState(mockStaff)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false)
+  }
 
   const addClient = (client) => {
     const newClient = {
@@ -71,6 +80,9 @@ export const AppProvider = ({ children }) => {
     addStaff,
     updateStaff,
     deleteStaff,
+    isSidebarOpen,
+    toggleSidebar,
+    closeSidebar,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

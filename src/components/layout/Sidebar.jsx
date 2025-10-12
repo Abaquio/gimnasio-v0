@@ -1,7 +1,11 @@
+"use client"
+
 import { Link, useLocation } from "react-router-dom"
+import { useApp } from "../../context/AppContext"
 
 const Sidebar = () => {
   const location = useLocation()
+  const { isSidebarOpen, closeSidebar } = useApp()
 
   const menuItems = [
     {
@@ -32,7 +36,7 @@ const Sidebar = () => {
         </svg>
       ),
     },
-    {
+    /*{
       path: "/clients/new",
       label: "Agregar Cliente",
       icon: (
@@ -45,7 +49,7 @@ const Sidebar = () => {
           />
         </svg>
       ),
-    },
+    }*/,
     {
       path: "/staff",
       label: "Staff",
@@ -60,7 +64,7 @@ const Sidebar = () => {
         </svg>
       ),
     },
-    {
+    /*{
       path: "/staff/new",
       label: "Agregar Staff",
       icon: (
@@ -73,38 +77,60 @@ const Sidebar = () => {
           />
         </svg>
       ),
-    },
+    }*/,
   ]
 
   return (
-    <aside className="w-64 bg-gray-900 text-white flex flex-col">
-      <div className="p-6 border-b border-gray-800">
-        <h1 className="text-2xl font-bold text-primary-400">GymAdmin</h1>
-        <p className="text-sm text-gray-400 mt-1">Plan Esencial</p>
-      </div>
+    <>
+      {isSidebarOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={closeSidebar} />}
 
-      <nav className="flex-1 p-4 space-y-2">
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                isActive ? "bg-primary-600 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"
-              }`}
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white flex flex-col transform transition-transform duration-300 ease-in-out ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
+        <div className="p-6 border-b border-gray-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-primary-400">GymAdmin</h1>
+              <p className="text-sm text-gray-400 mt-1">Plan Esencial</p>
+            </div>
+            <button
+              onClick={closeSidebar}
+              className="lg:hidden text-gray-400 hover:text-white transition-colors"
+              aria-label="Cerrar menú"
             >
-              {item.icon}
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          )
-        })}
-      </nav>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
-      <div className="p-4 border-t border-gray-800">
-        <div className="text-xs text-gray-500 text-center">© 2025 GymAdmin v1.0</div>
-      </div>
-    </aside>
+        <nav className="flex-1 p-4 space-y-2">
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={closeSidebar}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
+                  isActive ? "bg-primary-600 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                }`}
+              >
+                {item.icon}
+                <span className="font-medium">{item.label}</span>
+              </Link>
+            )
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-gray-800">
+          <div className="text-xs text-gray-500 text-center">© 2025 GymAdmin v1.0</div>
+        </div>
+      </aside>
+    </>
   )
 }
 
