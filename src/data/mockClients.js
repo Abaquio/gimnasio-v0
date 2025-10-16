@@ -9,7 +9,7 @@ export const mockClients = [
     membershipEnd: "2025-02-15",
     paymentMethod: "efectivo",
     createdAt: "2025-01-15",
-  },
+  }/*,
   {
     id: 2,
     name: "María García",
@@ -75,5 +75,5 @@ export const mockClients = [
   membershipEnd: "2025-10-15",
   paymentMethod: "efectivo",
   createdAt: "2025-09-10",
-  },
+  },*/
 ]

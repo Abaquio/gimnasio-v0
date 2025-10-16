@@ -8,6 +8,7 @@ import ClientNew from "./pages/ClientNew"
 import Profile from "./pages/Profile"
 import Staff from "./pages/Staff"
 import StaffNew from "./pages/StaffNew"
+import ClientEdit from "./pages/ClientEdit"
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/clients/new" element={<ClientNew />} />
+                <Route path="/clients/:id/edit" element={<ClientEdit />} />
                 <Route path="/staff" element={<Staff />} />
                 <Route path="/staff/new" element={<StaffNew />} />
                 <Route path="/profile" element={<Profile />} />

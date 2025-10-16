@@ -4,7 +4,7 @@ import morgan from 'morgan'
 import { env } from './config/env.js'
 import healthRouter from './routes/health.js'
 import plansRouter from './routes/plans.js'
-// ...
+import clientsRouter from './routes/clients.js'
 
 const app = express()
 
@@ -18,25 +18,22 @@ const API_PREFIX = '/api/v1'
 
 // Rutas
 app.use(API_PREFIX, healthRouter)
+app.use(API_PREFIX + '/plans', plansRouter)   // 👈 SUBE ESTO AQUÍ
+app.use(API_PREFIX + '/clients', clientsRouter) 
 
-// 404 por defecto
+// 404 por defecto (después de TODAS las rutas)
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' })
 })
 
-// Arranque
-app.listen(env.PORT, () => {
-  console.log(`✅ API escuchando en http://localhost:${env.PORT}${API_PREFIX}`)
-})
-
-// Handler de errores
+// Handler de errores global (después del 404)
 app.use((err, req, res, next) => {
   console.error(err)
   const status = err.status ?? 500
-  res.status(status).json({
-    error: err.message ?? 'Internal Server Error'
-  })
+  res.status(status).json({ error: err.message ?? 'Internal Server Error' })
 })
 
-
-app.use(API_PREFIX + '/plans', plansRouter)
+// Arranque (al final)
+app.listen(env.PORT, () => {
+  console.log(`✅ API escuchando en http://localhost:${env.PORT}${API_PREFIX}`)
+})

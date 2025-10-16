@@ -2,6 +2,7 @@
 import { memo } from "react"
 import { motion } from "framer-motion"
 import { Pencil, Trash2 } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 import StatusBadge from "../ui/StatusBadge"
 
 const container = {
@@ -19,7 +20,7 @@ const row = {
 
 function formatDate(date) {
   try {
-    return new Date(date).toLocaleDateString("es-ES")
+    return date ? new Date(date).toLocaleDateString("es-ES") : "-"
   } catch {
     return "-"
   }
@@ -27,12 +28,23 @@ function formatDate(date) {
 
 /**
  * Props:
- *  - clients: Array<{ id, name, email, phone, status, membershipEnd }>
- *  - onEdit(client)
- *  - onDelete(client)
+ *  - clients: Array<{ id?, cliente_id?, name, email, phone, status, membershipEnd }>
+ *  - onEdit?(client)
+ *  - onDelete?(client)
  */
 function ClientTable({ clients = [], onEdit, onDelete }) {
   const isEmpty = !clients || clients.length === 0
+  const navigate = useNavigate()
+
+  const handleEdit = (client) => {
+    if (typeof onEdit === "function") {
+      onEdit(client)
+      return
+    }
+    // Fallback: navegar a /clients/:id/edit
+    const id = client?.id ?? client?.cliente_id
+    if (id) navigate(`/clients/${id}/edit`)
+  }
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-gray-100 bg-white">
@@ -70,15 +82,13 @@ function ClientTable({ clients = [], onEdit, onDelete }) {
             {isEmpty ? (
               <tr>
                 <td colSpan={6} className="px-4 py-14 text-center">
-                  <p className="text-sm text-gray-600">
-                    No hay clientes para mostrar.
-                  </p>
+                  <p className="text-sm text-gray-600">No hay clientes para mostrar.</p>
                 </td>
               </tr>
             ) : (
               clients.map((client) => (
                 <motion.tr
-                  key={client.id ?? client.email}
+                  key={(client.id ?? client.cliente_id ?? client.email)}
                   variants={row}
                   className="group bg-white transition-colors hover:bg-gray-50/70"
                 >
@@ -111,7 +121,7 @@ function ClientTable({ clients = [], onEdit, onDelete }) {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
-                        onClick={() => onEdit?.(client)}
+                        onClick={() => handleEdit(client)}
                         className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         aria-label={`Editar ${client.name}`}
                       >

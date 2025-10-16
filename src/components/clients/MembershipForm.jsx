@@ -10,13 +10,13 @@ const paymentOptions = [
   { key: "credito", label: "Crédito", emoji: "💎" },
 ]
 
-// suma N meses y resta 1 día para ciclos cerrados
+// sumar N meses y restar 1 día (ciclo cerrado)
 function calcEndDate(startISO, months) {
   if (!startISO || !months || months <= 0) return ""
   const start = new Date(startISO + "T00:00:00")
   const d = new Date(start)
   d.setMonth(d.getMonth() + Number(months))
-  d.setDate(d.getDate() - 1) // hasta el día anterior
+  d.setDate(d.getDate() - 1)
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, "0")
   const day = String(d.getDate()).padStart(2, "0")
@@ -24,25 +24,27 @@ function calcEndDate(startISO, months) {
 }
 
 const toCLP = (v) =>
-  new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(
-    Number.isFinite(v) ? v : 0
-  )
+  new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 })
+    .format(Number.isFinite(v) ? v : 0)
 
-const MembershipForm = ({ plans = [], formData, onChange, errors = {} }) => {
+export default function MembershipForm({ plans = [], formData, onChange, errors = {} }) {
   const set = (patch) => onChange({ ...formData, ...patch })
 
-  const currentPlan = plans.find((p) => p.id === formData.planId) || null
-  const monthsToUse = formData.monthsOverride > 0 ? Number(formData.monthsOverride) : currentPlan?.meses || 0
+  const currentPlan = plans.find((p) => p.id === Number(formData.planId)) || null
+  const monthsToUse =
+    Number(formData.monthsOverride) > 0
+      ? Number(formData.monthsOverride)
+      : currentPlan?.meses || 0
 
-  // cuando cambia plan → rellenar precio por defecto si no hay override
+  // cuando cambia plan → sugiere precio del plan si no hay uno definido
   useEffect(() => {
-    if (currentPlan && !formData.priceClp) {
+    if (currentPlan && (formData.priceClp === "" || formData.priceClp == null)) {
       set({ priceClp: currentPlan.precio_clp })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.planId])
 
-  // recalcular fin cuando cambie inicio, plan o monthsOverride
+  // recalcular end al cambiar inicio, plan o monthsOverride
   useEffect(() => {
     if (formData.membershipStart && monthsToUse > 0) {
       const end = calcEndDate(formData.membershipStart, monthsToUse)
@@ -51,16 +53,18 @@ const MembershipForm = ({ plans = [], formData, onChange, errors = {} }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.membershipStart, formData.planId, formData.monthsOverride])
 
-  // helpers de inputs
+  // handlers
   const handleSelectPlan = (e) => {
-    const planId = Number(e.target.value) || null
-    // al seleccionar plan, si había monthsOverride lo mantenemos (si el usuario quiere forzar)
-    // si NO hay override, tomamos precio del plan
+    const planId = e.target.value ? Number(e.target.value) : null
     if (planId) {
       const p = plans.find((pl) => pl.id === planId)
       set({
         planId,
-        priceClp: p ? p.precio_clp : formData.priceClp,
+        // sugerimos precio del plan si el usuario no puso uno ya
+        priceClp:
+          formData.priceClp === "" || formData.priceClp == null
+            ? p?.precio_clp ?? ""
+            : formData.priceClp,
       })
     } else {
       set({ planId: null })
@@ -68,12 +72,12 @@ const MembershipForm = ({ plans = [], formData, onChange, errors = {} }) => {
   }
 
   const handleMonthsOverride = (e) => {
-    const n = e.target.value === "" ? "" : Math.max(1, Number(e.target.value))
-    set({ monthsOverride: n })
+    const v = e.target.value
+    if (v === "") return set({ monthsOverride: "" })
+    set({ monthsOverride: Math.max(1, Number(v)) })
   }
 
   const handlePrice = (e) => {
-    // almacenamos como entero CLP (sin puntos)
     const raw = e.target.value.replace(/[^\d]/g, "")
     set({ priceClp: raw === "" ? "" : Number(raw) })
   }
@@ -103,27 +107,29 @@ const MembershipForm = ({ plans = [], formData, onChange, errors = {} }) => {
             ))}
           </select>
           <p className="text-xs text-gray-500 mt-1">
-            Puedes elegir un plan o definir “Meses personalizados” abajo.
+            Puedes elegir un plan o definir “Meses personalizados”.
           </p>
         </FormField>
 
         <FormField label="Precio" required error={errors.priceClp}>
-          <div className="relative">
-            <input
-              type="text"
-              inputMode="numeric"
-              name="priceClp"
-              value={formData.priceClp === "" || formData.priceClp == null ? "" : toCLP(formData.priceClp)}
-              onChange={handlePrice}
-              placeholder="$35.000"
-              className="w-full pl-4 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
-            />
-          </div>
+          <input
+            type="text"
+            inputMode="numeric"
+            name="priceClp"
+            value={
+              formData.priceClp === "" || formData.priceClp == null
+                ? ""
+                : toCLP(Number(formData.priceClp))
+            }
+            onChange={handlePrice}
+            placeholder="$35.000"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
+          />
           <p className="text-xs text-gray-500 mt-1">Se guarda como CLP entero (sin decimales).</p>
         </FormField>
       </div>
 
-      {/* Meses personalizados */}
+      {/* Meses personalizados + Inicio */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField label="Meses personalizados (opcional)" error={errors.monthsOverride}>
           <input
@@ -163,7 +169,7 @@ const MembershipForm = ({ plans = [], formData, onChange, errors = {} }) => {
         </p>
       </FormField>
 
-      {/* Método de pago tipo “cards” */}
+      {/* Método de pago tipo cards */}
       <div className="space-y-3">
         <h4 className="text-md font-semibold text-gray-900 flex items-center gap-2">
           <span>💰</span> Método de Pago
@@ -192,5 +198,3 @@ const MembershipForm = ({ plans = [], formData, onChange, errors = {} }) => {
     </div>
   )
 }
-
-export default MembershipForm
