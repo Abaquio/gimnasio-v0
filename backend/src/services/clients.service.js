@@ -2,7 +2,7 @@
 import { supabase } from '../lib/supabase.js'
 import { HttpError } from '../utils/httpError.js'
 
-// ---------- EXISTENTE ----------
+// ---------- HELPERS ----------
 function computeStatus(endDateStr) {
   if (!endDateStr) return 'sin_membresia'
   const today = new Date()
@@ -13,6 +13,7 @@ function computeStatus(endDateStr) {
   return 'vigente'
 }
 
+// ---------- LISTAR ----------
 export async function listClients({
   search = '',
   status,
@@ -80,9 +81,7 @@ export async function listClients({
   return { items, total: items.length }
 }
 
-/**
- * Crea cliente + membresía inicial (ya lo tenías)
- */
+// ---------- CREAR + membresía inicial ----------
 export async function createClientWithMembership(payload) {
   const { data: cData, error: cErr } = await supabase
     .from('cliente')
@@ -119,7 +118,7 @@ export async function createClientWithMembership(payload) {
   return { clienteId: cData.id, periodId: rpcData }
 }
 
-// ---------- NUEVO: obtener 1 cliente ----------
+// ---------- OBTENER 1 ----------
 export async function getClientById(id) {
   const { data: c, error } = await supabase
     .from('cliente')
@@ -151,7 +150,7 @@ export async function getClientById(id) {
   }
 }
 
-// ---------- NUEVO: actualizar datos básicos ----------
+// ---------- ACTUALIZAR datos básicos ----------
 export async function updateClient(id, { nombre, correo, telefono }) {
   const { data, error } = await supabase
     .from('cliente')
@@ -167,51 +166,26 @@ export async function updateClient(id, { nombre, correo, telefono }) {
   return { id: data.id }
 }
 
-// ---------- NUEVO: renovar / pagar por adelantado ----------
-/**
- * Renovación flexible:
- * - months: número de meses a agregar (>=1)
- * - paymentMethod: 'efectivo' | 'transferencia' | 'debito' | 'credito'
- * - amountClp: opcional; si no viene, el RPC calcula con el plan.
- * - planId: opcional; si viene, el RPC usa ese plan. Si no, usa lógica por defecto.
- *
- * Devuelve el id del nuevo período (y/o lo que retorne el RPC).
- */
-export async function renewMembership(
-  clienteId,
-  { months = 1, paymentMethod = 'efectivo', amountClp = null, planId = null } = {}
-) {
+// ---------- RENOVAR / ADELANTAR membresía (NUEVO) ----------
+export async function renewMembership({ clienteId, months, method, priceClp }) {
   if (!clienteId) throw new HttpError(400, 'clienteId requerido')
-  if (!months || Number(months) <= 0) throw new HttpError(400, 'months inválido')
+  if (!months || Number(months) <= 0) throw new HttpError(400, 'Meses inválidos')
+  if (!method) throw new HttpError(400, 'Método de pago requerido')
+  if (!priceClp || Number(priceClp) <= 0) throw new HttpError(400, 'Monto inválido')
 
-  const { data: rpcData, error: rpcErr } = await supabase.rpc(
-    'renew_membership_flexible',
-    {
-      p_cliente_id: clienteId,
-      p_plan_id: planId,
-      p_months_override: Number(months),
-      p_precio_clp: amountClp,     // puede ser null -> el RPC calcula
-      p_method: paymentMethod,
-    }
-  )
+  // Llamamos a la función SQL que ya creaste en Supabase
+  const { data, error } = await supabase.rpc('renew_membership_flexible', {
+    p_cliente_id: clienteId,
+    p_plan_id: null,                     // usamos months override
+    p_months_override: Number(months),
+    p_precio_clp: Number(priceClp),
+    p_method: method,
+  })
 
-  if (rpcErr) {
-    console.error('[renewMembership] rpc error:', rpcErr)
-    throw new HttpError(500, 'No se pudo registrar la renovación')
+  if (error) {
+    console.error('[renewMembership] rpc error:', error)
+    throw new HttpError(500, 'No se pudo renovar la membresía')
   }
 
-  // opcionalmente podrías recalcular estado y devolverlo:
-  try {
-    const { data: last, error: lpErr } = await supabase
-      .from('membership_period')
-      .select('end_date')
-      .eq('cliente_id', clienteId)
-      .order('end_date', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    const estado = computeStatus(last?.end_date ?? null)
-    return { periodId: rpcData, estado, end_date: last?.end_date ?? null }
-  } catch {
-    return { periodId: rpcData }
-  }
+  return { periodId: data }
 }

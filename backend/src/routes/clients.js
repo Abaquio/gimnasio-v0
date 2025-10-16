@@ -6,9 +6,9 @@ import {
   createClientWithMembership,
   getClientById,
   updateClient,
+  renewMembership, // 👈 NUEVO
 } from '../services/clients.service.js'
 import { createClientSchema } from '../schemas/clients.schema.js'
-
 
 const router = Router()
 
@@ -38,7 +38,7 @@ router.get(
   })
 )
 
-// NUEVO: GET /api/v1/clients/:id
+// GET /api/v1/clients/:id
 router.get(
   '/:id',
   asyncHandler(async (req, res) => {
@@ -64,12 +64,11 @@ router.post(
   })
 )
 
-// NUEVO: PUT /api/v1/clients/:id (actualiza nombre/correo/telefono)
+// PUT /api/v1/clients/:id (actualiza nombre/correo/telefono)
 router.put(
   '/:id',
   asyncHandler(async (req, res) => {
     const { id } = req.params
-    // Validación mínima para no tocar schemas existentes
     const { nombre, correo, telefono } = req.body ?? {}
     if (
       typeof nombre !== 'string' ||
@@ -85,20 +84,31 @@ router.put(
     res.json(result)
   })
 )
-// POST /api/v1/clients/:id/renew
-router.post('/:id/renew', async (req, res, next) => {
-  try {
+
+// POST /api/v1/clients/:id/renew  (renovar / adelantar membresía)
+router.post(
+  '/:id/renew',
+  asyncHandler(async (req, res) => {
     const { id } = req.params
-    const { months, paymentMethod, amountClp } = req.body
-    const out = await renewMembership(id, {
-      months: Number(months),
-      paymentMethod,
-      amountClp: amountClp != null ? Number(amountClp) : undefined,
+
+    // Soportamos alias desde el front:
+    // months, method|paymentMethod, priceClp|amountClp
+    const months = Number(req.body.months)
+    const method = req.body.method ?? req.body.paymentMethod
+    const priceClpRaw =
+      req.body.priceClp != null ? req.body.priceClp : req.body.amountClp
+    const priceClp =
+      priceClpRaw != null ? Number(String(priceClpRaw)) : undefined
+
+    const out = await renewMembership({
+      clienteId: id,
+      months,
+      method,
+      priceClp,
     })
+
     res.status(201).json(out)
-  } catch (err) {
-    next(err)
-  }
-})
+  })
+)
 
 export default router
